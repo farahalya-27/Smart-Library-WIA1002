@@ -1,8 +1,11 @@
 public class Book {
-    private int isbn;
+     private int isbn;
     private String title;
     private String author;
     private boolean borrowed;
+    
+    private Book left;
+    private Book right;
     
     public Book(int isbn, String title, String author){
         
@@ -10,6 +13,8 @@ public class Book {
         this.title = title;
         this.author = author;
         this.borrowed = false;
+        this.left = null;
+        this.right = null;
     }
     
     public int getIsbn(){
@@ -30,6 +35,22 @@ public class Book {
     
     public void setBorrowed(boolean borrowed){
         this.borrowed = borrowed;
+    }
+    
+    public Book getLeft(){
+        return left;
+    }
+    
+    public void setLeft(Book left){
+        this.left = left;
+    }
+    
+    public Book getRight(){
+        return right;
+    }
+    
+    public void setRight(Book right){
+        this.right = right;
     }
     
     @Override
