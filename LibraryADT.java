@@ -1,5 +1,5 @@
 public interface LibraryADT {
-    void addBook(Book Book);
+    void addBook(int isbn, String title, String author);
     
     Book searchBook(int isbn);
     
