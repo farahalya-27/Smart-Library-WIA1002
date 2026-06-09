@@ -12,128 +12,137 @@ public class SmartLibrary implements LibraryADT {
     private BookBST catalogue = new BookBST();
     private BorrowStack history = new BorrowStack();
     
-    public void addBook(int i, String t, String a){
-        catalogue.insert(i, t, a);
-        System.out.println("Book added successly!");
-        
+    public SmartLibrary() {
+        history.loadFromFile();
     }
-    
+    @Override
+    public void addBook(Book Book){
+        catalogue.insert(Book.getIsbn(), Book.getTitle(), Book.getAuthor());
+        System.out.println("\nSuccessfully added " + Book.getTitle() + " to the library catalogue.");
+    }
+    @Override
     public void searchBook(int isbn){
-        Book b = catalogue.search(isbn);
-        //Ensure it doesn't just check if null, but also checks if it's currently borrowed
-        if ( b != null ){
-            System.out.println("Found: "+ b.getTitle());
-            
-        }else if (b != null && !b.isBorrowed()){
-            System.out.println("Found but status is: Currently Borrowed.");
-            
-        }else{
-            System.out.println("Not found.");
+        System.out.println("\nSearching catalogue tree for ISBN " + isbn + "...");
+        Book foundBook = catalogue.search(isbn);
+        
+        if(foundBook != null){
+            System.out.println("Result: [FOUND]");
+            System.out.println("--------------------------------");
+            System.out.println("ISBN   : " + foundBook.getIsbn());
+            System.out.println("Title  : " + foundBook.getTitle());
+            System.out.println("Author : " + foundBook.getAuthor());
+            System.out.println("Status : " + (foundBook.isBorrowed() ? "Borrowed" : "Available"));
+            System.out.println("--------------------------------");
+        } else {
+            System.out.println("Result: [NOT FOUND]");
         }
     }
-    
-    public void borrowBook (int i){
-            Book b = catalogue.search(i);
-            if (b == null){
-                System.out.println("Error : Book not found in system catalogue.");
-                
-            }else if(b.isBorrowed()){
-                System.out.println("Error: ' " + b.getTitle() + "' is already checked out by another student." );
-            }else {
-                b.setBorrowed(true); //Mark as borrowed
-                history.push(b); // Pushes onto the LIFO history stack
-                System.out.println("Success: You have borrowed ' " + b.getTitle() + " '.");
-                
-            }    
+    @Override
+    public void borrowBook(int isbn){
+        System.out.println("\nChecking item availability for ISBN " + isbn + "...");
+        Book targetBook = catalogue.search(isbn);
+        
+        if(targetBook != null){
+            if(targetBook.isBorrowed()){
+                System.out.println("Error: " + targetBook.getTitle() + " is already checked out.");
+            } else {
+                targetBook.setBorrowed(true);
+                history.push(targetBook);
+                System.out.println("Success: You have borrowed " + targetBook.getTitle());
+            }
+        } else {
+            System.out.println("Error: Target ISBN does not exist in our reference system.");
+        }
     }
-    
     public void viewHistory(){
         history.show();
     }
-    
     public void runMenu(){
-        Scanner sc = new Scanner (System.in);
+        Scanner sc = new Scanner(System.in);
         while(true){
             printMenu();
-            System.out.println("Choice:");
+            System.out.print("Choice: ");
             
-            //Input Validation : Check if user input is an integer
-            if ( !sc.hasNextInt()){
-                System.out.println("Invalid input! Please enter a number between 1 and 5.");
-                sc.next(); // clear out the bad token
+            if(!sc.hasNextInt()){
+                System.out.println("Error: Invalid input");
+                sc.next();
                 continue;
             }
-            
             int choice = sc.nextInt();
-            if (choice == 5) {
-                System.out.println("Exiting system. Goodbye!");
+            sc.nextLine();
+            
+            if(choice == 5){
+                System.out.println("Saving data and exiting Smart Library System. Goodbye!");
+                history.saveToFile();
                 break;
             }
             handleChoice(choice, sc);
         }
         sc.close();
     }
-    
     private void printMenu(){
-        System.out.println("\n--- Smart Library Menu ---");
-        System.out.println("1. Add Book");
-        System.out.println("2. Search(BST)");
-        System.out.println("3. Borrow (Stack)");
-        System.out.println("4. History");
-        System.out.println("5. Exit");
+        System.out.println("\n----- Smart Library -----");
+        System.out.println("1.Add Book");
+        System.out.println("2.Search");
+        System.out.println("3.Borrow Book");
+        System.out.println("4.History");
+        System.out.println("5.Exit");
     }
-    
     private void handleChoice(int choice, Scanner sc){
-        switch (choice){
-            case 1:
-                System.out.println("Enter ISBN (Integer): ");
-                while (!sc.hasNextInt()){
-                    System.out.println("ISBN must be an integer!");
-                    sc.next();
+        switch(choice){
+            case 1 -> {
+                int isbn = 0;
+                while(true){
+                    try {
+                        System.out.print("Enter ISBN: ");
+                        isbn = sc.nextInt();
+                        sc.nextLine();
+                        break;
+                    } catch(Exception e) {
+                        System.out.println("Error: Invalid input. Try again");
+                        sc.nextLine();
+                    }
                 }
-                    
-                
-                int i = sc.nextInt();
-                sc.nextLine(); //Clear scanner buffer space
                 
                 System.out.print("Enter Title: ");
-                String t = sc.nextLine();
-                
+                String title = sc.nextLine();
                 System.out.print("Enter Author: ");
-                String a = sc.nextLine();
+                String author = sc.nextLine();
                 
-                addBook(i, t, a);
-     
-                break;
-                
-            case 2: 
-                System.out.print("Enter ISBN to search: ");
-                if (sc.hasNextInt()) {
-                    searchBook(sc.nextInt());
-                } else {
-                    System.out.println("Invalid ISBN format.");
-                    sc.next();
-                }
-                break;
-                
-            case 3:
-                System.out.println("Enter ISBN to borrow: ");
-                if(sc.hasNextInt()){
-                    borrowBook(sc.nextInt());  
-                    
-                }else{
-                        System.out.println("Invalid ISBN format.");
-                        sc.next();
+                Book newBook = new Book(isbn, title, author);
+                addBook(newBook);
+            }
+            case 2 -> {
+                int searchIsbn = 0;
+                while(true){
+                    try {
+                        System.out.print("Enter ISBN to search: ");
+                        searchIsbn = sc.nextInt();
+                        sc.nextLine();
+                        break;
+                    } catch(Exception e) {
+                        System.out.println("Error: Invalid input. Try again");
+                        sc.nextLine();
                     }
-            
-            case 4: 
-                viewLatestHistory();
-                break;
-                
-            default:
-                System.out.println("Invalid option. Please choose 1-5.");
-                
-            
+                }
+                searchBook(searchIsbn);
+            }
+            case 3 -> {
+                int borrowIsbn = 0;
+                while(true){
+                    try {
+                        System.out.print("Enter ISBN to borrow: ");
+                        borrowIsbn = sc.nextInt();
+                        sc.nextLine();
+                        break;
+                    } catch(Exception e) {
+                        System.out.println("Error: Invalid input. Try again");
+                        sc.nextLine();
+                    }
+                }
+                borrowBook(borrowIsbn);
+            }
+            case 4 -> viewHistory();
         }
     }
 }
