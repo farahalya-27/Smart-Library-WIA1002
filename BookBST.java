@@ -15,12 +15,12 @@ public class BookBST {
         this.root = null;
     }
 
-    // Member 1: Insert method
+    
     public void insert(int isbn, String title, String author) {
         root = ins(root, isbn, title, author); 
     }
 
-    // Member 1: Internal recursive insert helper
+   
     private Book ins(Book r, int i, String t, String a) {
         if (r == null) { 
             return new Book(i, t, a); 
